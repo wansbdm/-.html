@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>知识图谱</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .node {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <svg width="600" height="400"></svg>
+    <script>
+        const svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        const link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data([
+                {source: "《永夜星河》", target: "凌妙妙"},
+                {source: "《永夜星河》", target: "慕声"},
+                {source: "《永夜星河》", target: "慕瑶"},
+                {source: "《永夜星河》", target: "柳拂衣"},
+                {source: "《永夜星河》", target: "《黑莲花攻略手册》"},
+                {source: "凌妙妙", target: "回归现实世界"},
+                {source: "凌妙妙", target: "完成系统派发的任务"},
+                {source: "《永夜星河》", target: "捉妖打怪升级"},
+                {source: "《永夜星河》", target: "化解人妖两族恩怨"}
+            ])
+            .join("line")
+            .attr("stroke-width", d => Math.sqrt(d.value))
+            .attr("class", "link");
+
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data([
+                {id: "《永夜星河》", group: 1},
+                {id: "凌妙妙", group: 2},
+                {id: "慕声", group: 3},
+                {id: "慕瑶", group: 3},
+                {id: "柳拂衣", group: 3},
+                {id: "《黑莲花攻略手册》", group: 1},
+                {id: "回归现实世界", group: 2},
+                {id: "完成系统派发的任务", group: 2},
+                {id: "捉妖打怪升级", group: 3},
+                {id: "化解人妖两族恩怨", group: 3}
+            ])
+            .join("circle")
+            .attr("r", 5)
+            .attr("fill", d => color(d.group))
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        node.append("title")
+            .text(d => d.id);
+
+        simulation
+            .nodes(node.data())
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(link.data());
+
+        function ticked() {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        function dragended(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
+    </script>
+</body>
+</html>
